@@ -18,7 +18,7 @@ struct Settings {
     
     static var numberOfBalls = Setting("numberOfBalls", initialValue: 2, description: "The number of balls that are required to be thrown before the timer starts. Set this to 0 to throw as many balls as you like.")
     static var ballRadius = Setting("ballRadius", initialValue: CGFloat(15.0), description: "The radius, in points, of the balls that are thrown. This is some more text to wrap lines.")
-    static var ballVelocity = Setting("ballVelocity", initialValue: CGFloat(400), description: "sdf")
+    static var ballVelocity = Setting("ballVelocity", initialValue: CGFloat(200), description: "sdf")
     static var tailMarkerRadius = Setting("tailMarkerRadius", initialValue: CGFloat(2), description: "sdf")
     static var tipMarkerRadius = Setting("tipMarkerRadius", initialValue: CGFloat(15.0), description: "sdf")
      
@@ -64,7 +64,7 @@ enum UserDefaultsKey: String {
     
 }
 
-struct Setting<T> {
+class Setting<T> {
 
     public let initialValue: T
     public let description: String
@@ -92,7 +92,7 @@ struct Setting<T> {
     
     /// Attempts to parse a value from a string.
     /// - Returns: true iff the parsing is successful
-    public mutating func parseValue(from str: String) -> Bool {
+    public func parseValue(from str: String) -> Bool {
         if T.self is CGFloat.Type {
             if let f = Float(str) {
                 self.value = CGFloat(f) as! T
@@ -117,7 +117,7 @@ struct Setting<T> {
     }
     
     private var onChangeHandlers = [(T) -> Void]()
-    mutating func onChange(_ handler: @escaping (T) -> Void) {
+    public func onChange(_ handler: @escaping (T) -> Void) {
         onChangeHandlers.append(handler)
     }
 }

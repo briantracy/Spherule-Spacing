@@ -41,8 +41,9 @@ class MainMenuViewController: UIViewController {
 
 extension UIButton {
     func configureAsMainMenuButton(title: String, target: Any, action: Selector) {
-        setTitle(title, for: .normal)
-        titleLabel?.font = .boldSystemFont(ofSize: 40)
+        setAttributedTitle(NSAttributedString(string: title, attributes:
+            [.font: UIFont.boldSystemFont(ofSize: 40),
+             .foregroundColor: Settings.colorScheme.value.textColor]), for: .normal)
         sizeToFit()
         self.addTarget(target, action: action, for: .touchUpInside)
     }

@@ -22,7 +22,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         window?.rootViewController = rootViewController
         window?.makeKeyAndVisible()
         
-        UserDefaults.standard.removePersistentDomain(forName: Bundle.main.bundleIdentifier!)
+        //UserDefaults.standard.removePersistentDomain(forName: Bundle.main.bundleIdentifier!)
 
         return true
     }

@@ -96,7 +96,6 @@ extension GameScene /* Initializers */ {
                       tail: createTail(), line: createDashedLine(),
                       timerLabel: createTimerLabel(), camera: createCamera())
         
-        startTimer()
         addChild(nodes.tip)
         addChild(nodes.tail)
         addChild(nodes.line)
@@ -196,6 +195,10 @@ extension GameScene /* Node Creation */ {
 extension GameScene /* Touch Delegates */ {
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if gameData.ballsThrown >= Settings.numberOfBalls.value {
+            return
+        }
+        
         if let touch = touches.first {
             let loc = touch.location(in: self)
             gameData.currentlyThrowing = canPlaceBall(at: loc)
@@ -208,6 +211,9 @@ extension GameScene /* Touch Delegates */ {
     }
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if gameData.ballsThrown >= Settings.numberOfBalls.value {
+            return
+        }
         guard gameData.currentlyThrowing else { return }
         if let touch = touches.first {
             nodes.tip.position = touch.location(in: self)
@@ -217,11 +223,18 @@ extension GameScene /* Touch Delegates */ {
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        if gameData.ballsThrown >= Settings.numberOfBalls.value {
+            return
+        }
         guard gameData.currentlyThrowing else { return }
         if let touch = touches.first {
             nodes.tip.position = touch.location(in: self)
             self.physicsWorld.speed *= Settings.timeSlowdownFactorWhenThrowing.value
             if canThrowBall() { throwBall() }
+            if gameData.ballsThrown >= Settings.numberOfBalls.value {
+                startTimer()
+                fadeOutTail()
+            }
             fadeOutTipMarker()
             fadeOutLine()
         }
@@ -257,6 +270,9 @@ extension GameScene /* Animation */ {
     }
     private func fadeInTail() {
         nodes.tail.run(GameScene.fadeIn)
+    }
+    private func fadeOutTail() {
+        nodes.tail.run(GameScene.fadeOut)
     }
 }
 
@@ -320,6 +336,7 @@ extension GameScene /* Timer */ {
     private func startTimer() {
         gameData.startTime = mach_absolute_time()
         gameData.timer.fire()
+        
     }
     private func updateTimer() {
         guard let startTime = gameData.startTime else { return }
@@ -328,13 +345,14 @@ extension GameScene /* Timer */ {
         nodes.timerLabel.text = str
     }
     private func stopTimer() {
-        
+        gameData.timer.invalidate()
     }
 }
 
 extension GameScene: SKPhysicsContactDelegate {
     func didBegin(_ contact: SKPhysicsContact) {
         if contact.bodyA.contactTestBitMask == contact.bodyB.contactTestBitMask {
+            stopTimer()
             physicsWorld.speed /= 20
             print(contact.bodyA.contactTestBitMask)
             let loc = contact.bodyB.node!.position

@@ -16,12 +16,6 @@ class SettingsViewController: UIViewController {
     override func loadView() {
         let scrollView = UIScrollView(frame: UIScreen.main.bounds)
         scrollView.backgroundColor = Settings.colorScheme.value.settingsMenuBackgroundColor
-        Settings.colorScheme.onChange { (newScheme) in
-            scrollView.backgroundColor = newScheme.settingsMenuBackgroundColor
-        }
-        //scrollView.contentSize = CGSize(width: UIScreen.width, height: UIScreen.height)
-//        scrollView.isScrollEnabled = true
-        //scrollView.contentInset = UIEdgeInsets(top: 0, left: 30, bottom: 0, right: 30)
         
         self.view = scrollView
     }
@@ -32,7 +26,7 @@ class SettingsViewController: UIViewController {
         addSettingView(forSetting: Settings.ballRadius)
         addSettingView(forSetting: Settings.numberOfBalls)
         addSettingView(forSetting: Settings.numberOfObstacles)
-        addSettingView(forSetting: Settings.nthCollisionEndsRound)
+        addSettingView(forSetting: Settings.ballVelocity)
         addSettingView(forSetting: Settings.ballVelocity)
         addSettingView(forSetting: Settings.ballRadius)
         addSettingView(forSetting: Settings.numberOfBalls)
@@ -50,11 +44,17 @@ class SettingsViewController: UIViewController {
     }
     
     override func viewDidAppear(_ animated: Bool) {
-
+        (self.view as! UIScrollView).contentSize = {
+            var rect = CGRect.zero
+            for v in self.view.subviews {
+                rect = rect.union(v.frame)
+            }
+            return CGSize(width: rect.size.width, height: rect.size.height + 20)
+        }()
     }
     
     private func addSettingView<T>(forSetting setting: Setting<T>) {
-        let settingView = SettingView()
+        let settingView = SettingView<T>()
         settingView.translatesAutoresizingMaskIntoConstraints = false
         settingView.backgroundColor = .red
         settingView.configure(with: setting)
@@ -68,8 +68,10 @@ class SettingsViewController: UIViewController {
     
     private func addTitle() {
         let title = UILabel()
-        title.text = NSLocalizedString("Settings", comment: "")
-        title.font = UIFont.boldSystemFont(ofSize: 30)
+        title.attributedText = NSAttributedString(string: "Settings", attributes:
+            [.font: UIFont.boldSystemFont(ofSize: 30),
+             .foregroundColor: Settings.colorScheme.value.textColor])
+        
         view.addSubview(title)
         title.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
@@ -90,38 +92,53 @@ class SettingsViewController: UIViewController {
             NSLayoutConstraint(item: back, attribute: .leading, relatedBy: .equal, toItem: view, attribute: .leading, multiplier: 1, constant: 10),
             NSLayoutConstraint(item: back, attribute: .top, relatedBy: .equal, toItem: view, attribute: .top, multiplier: 1, constant: 10)
         ])
+        back.addTarget(self, action: #selector(backClicked), for: .touchUpInside)
+    }
+    
+    @objc private func backClicked() {
+        dismiss(animated: false, completion: nil)
     }
 }
 
-class SettingView: UIView, UITextFieldDelegate {
+class SettingView<T>: UIView, UITextFieldDelegate {
     let descriptionLabel = UILabel()
     let inputField = UITextField()
     let resetButton = UIButton(type: UIButtonType.roundedRect)
     
-    func configure<T>(with setting: Setting<T>) {
-        self.backgroundColor = .lightGray
+    var setting: Setting<T>!
+    
+    func configure(with setting: Setting<T>) {
+        self.setting = setting
         preventExtraConstraints()
         let text = NSMutableAttributedString()
-        text.append(NSAttributedString(string: "\(setting.name): ", attributes: [NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 12)]))
-        text.append(NSAttributedString(string: setting.description, attributes: [NSAttributedStringKey.font: UIFont.systemFont(ofSize: 12)]))
+        text.append(NSAttributedString(string: "\(setting.name): ", attributes: [NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 16), .foregroundColor: Settings.colorScheme.value.textColor]))
+        text.append(NSAttributedString(string: setting.description, attributes: [NSAttributedStringKey.font: UIFont.systemFont(ofSize: 14), .foregroundColor: Settings.colorScheme.value.textColor]))
         
         
         descriptionLabel.attributedText = text
-        descriptionLabel.backgroundColor = .orange
+        descriptionLabel.backgroundColor = .clear
         descriptionLabel.numberOfLines = 0
         
-        inputField.text = "\(setting.initialValue)"
+        inputField.textColor = Settings.colorScheme.value.textColor
+        inputField.text = "\(setting.value)"
+        
         inputField.isEnabled = true
         inputField.borderStyle = .bezel
         //inputField.backgroundColor = .red
         inputField.allowsEditingTextAttributes = true
         inputField.delegate = self
-        resetButton.setTitle("asdf", for: .normal)
+        resetButton.setAttributedTitle(NSAttributedString(string: "Reset", attributes: [.foregroundColor: Settings.colorScheme.value.textColor]), for: .normal)
+        resetButton.layer.borderWidth = 1
+        resetButton.layer.borderColor = UIColor.green.cgColor
+        resetButton.layer.cornerRadius = 5
         resetButton.isEnabled = true
-        backgroundColor = .lightGray
+        resetButton.addTarget(self, action: #selector(resetClicked), for: .touchUpInside)
+        backgroundColor = .clear
         addSubview(descriptionLabel)
         addSubview(inputField)
         addSubview(resetButton)
+        
+        
         
         NSLayoutConstraint.activate([
             NSLayoutConstraint(item: descriptionLabel, attribute: .top, relatedBy: .equal, toItem: self, attribute: .top, multiplier: 1, constant: 0),
@@ -135,21 +152,33 @@ class SettingView: UIView, UITextFieldDelegate {
         //inputField.becomeFirstResponder()
     }
     
-    override var canBecomeFirstResponder: Bool  {
+    @objc private func resetClicked() {
+        inputField.text = "\(setting.initialValue)"
+    }
+    
+    override var canBecomeFirstResponder: Bool {
         return true
     }
     
     private func preventExtraConstraints() {
-        //self.translatesAutoresizingMaskIntoConstraints = false
         descriptionLabel.translatesAutoresizingMaskIntoConstraints = false
         inputField.translatesAutoresizingMaskIntoConstraints = false
         resetButton.translatesAutoresizingMaskIntoConstraints = false
     }
     
     func textFieldShouldBeginEditing(_ textField: UITextField) -> Bool {
-        
         return true
     }
     
-
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        if let str = textField.text {
+            if setting.parseValue(from: str) {
+                print("set successful")
+            }
+            else {
+                print("not successful")
+                textField.text = "\(setting.initialValue)"
+            }
+        }
+    }
 }

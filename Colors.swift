@@ -28,6 +28,7 @@ import UIKit
     @objc var tipMarkerStrokeColor: UIColor!
     @objc var mainMenuBackgroundColor: UIColor!
     @objc var settingsMenuBackgroundColor: UIColor!
+    @objc var textColor: UIColor!
     
     init(
             name: String!,
@@ -44,7 +45,8 @@ import UIKit
             tipMarkerFillColor: UIColor!,
             tipMarkerStrokeColor: UIColor!,
             mainMenuBackgroundColor: UIColor!,
-            settingsMenuBackgroundColor: UIColor!
+            settingsMenuBackgroundColor: UIColor!,
+            textColor: UIColor!
     ) {
         self.name = name
         self.backgroundColor = backgroundColor
@@ -61,6 +63,7 @@ import UIKit
         self.tipMarkerStrokeColor = tipMarkerStrokeColor
         self.mainMenuBackgroundColor = mainMenuBackgroundColor
         self.settingsMenuBackgroundColor = settingsMenuBackgroundColor
+        self.textColor = textColor
     }
     override init() {}
     
@@ -89,7 +92,7 @@ struct ColorSchemes {
                                    ballStrokeColor: .green, obstacleFillColor: .clear, obstacleStrokeColor: .green,
                                    startPointColor: .green, endPointColor: .green, connectingLineColor: .green,
                                    tailMarkerFillColor: .green, tailMarkerStrokeColor: .green, tipMarkerFillColor: .clear,
-                                   tipMarkerStrokeColor: .green, mainMenuBackgroundColor: .cyan, settingsMenuBackgroundColor: .brown)
+                                   tipMarkerStrokeColor: .green, mainMenuBackgroundColor: .black, settingsMenuBackgroundColor: .black, textColor: .green)
 //    static let grayscale =
 //                       ColorScheme(name: "grayscale", backgroundColor: "#DDDDDD".c, ballFillColor: "#777777".c,
 //                                   ballStrokeColor: "#BBBBBB".c, obstacleFillColor: "#808080".c, obstacleStrokeColor: .black,
