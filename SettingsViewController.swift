@@ -49,8 +49,29 @@ class SettingsViewController: UIViewController {
             for v in self.view.subviews {
                 rect = rect.union(v.frame)
             }
+            
             return CGSize(width: rect.size.width, height: rect.size.height + 20)
         }()
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow), name: .UIKeyboardWillShow, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide), name: .UIKeyboardWillHide, object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc private func keyboardWillShow(_ not: NSNotification) {
+        if let dict = not.userInfo,
+           let keyboardInfo = dict[UIKeyboardFrameBeginUserInfoKey] as? NSValue {
+            let keyboardSize = keyboardInfo.cgRectValue.size
+            let insets = UIEdgeInsets(top: 0, left: 0, bottom: keyboardSize.height, right: 0)
+//            (self.view as! UIScrollView).contentInset = insets
+//            (self.view as! UIScrollView).scrollIndicatorInsets = insets
+        }
+    }
+    @objc private func keyboardWillHide(_ not: NSNotification) {
+        
     }
     
     private func addSettingView<T>(forSetting setting: Setting<T>) {

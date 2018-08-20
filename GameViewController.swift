@@ -10,12 +10,17 @@ import Foundation
 import UIKit
 import SpriteKit
 
+struct SceneDismissal {
+    static let dismissSceneNotificationName = Notification.Name("__dismissScene")
+}
+
 class GameViewController: UIViewController {
     
     let spriteView = SKView(frame: UIScreen.main.bounds)
     let gameScene = GameScene(size: UIScreen.size)
     
     override func viewDidLoad() {
+        
         view.backgroundColor = .cyan
         spriteView.backgroundColor = .red
         view.addSubview(spriteView)
@@ -25,5 +30,15 @@ class GameViewController: UIViewController {
         //spriteView.showsFields = true
         //spriteView.showsPhysics = true
         spriteView.showsNodeCount = true
-    }    
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(dismissScene), name: SceneDismissal.dismissSceneNotificationName, object: nil)
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    @objc private func dismissScene() {
+        dismiss(animated: false, completion: nil)
+    }
 }

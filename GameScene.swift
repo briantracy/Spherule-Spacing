@@ -72,7 +72,7 @@ class GameScene: SKScene {
 
     }
 
-    func throwBall() {
+    func releaseBall() {
         let tip = nodes.tip.position
         let tail = nodes.tail.position
         gameData.ballsThrown += 1
@@ -190,54 +190,117 @@ extension GameScene /* Node Creation */ {
     
 }
 
+extension GameScene /* Ball Throwing */ {
+    
+    private func beginBallThrow(at loc: CGPoint) {
+        gameData.currentlyThrowing = true
+        nodes.tail.position = loc
+        fadeInTail()
+        physicsWorld.speed = 1.0 / Settings.timeSlowdownFactorWhenThrowing.value
+    }
+    
+    private func continueThrowingBall(from loc: CGPoint) {
+        nodes.tip.position = loc
+        fadeInTip()
+        updateLinePosition()
+        fadeInLine()
+        
+    }
+    
+    private func stopThrowingBall(at loc: CGPoint) {
+        gameData.currentlyThrowing = false
+        nodes.tip.position = loc
+        fadeOutLine()
+        fadeOutTip()
+        fadeOutTail()
+        physicsWorld.speed = 1
+        if canReleaseBall() { releaseBall() }
+    }
+    
+    private func canPlaceBall(at: CGPoint) -> Bool {
+        for obs in nodes.obstacles {
+            if obs.contains(at) {
+                return false
+            }
+        }
+        return true
+    }
+    
+    private func canReleaseBall() -> Bool {
+        return distance(from: nodes.tip.position, to: nodes.tail.position) > CGFloat(1)
+    }
+}
+
 
 
 extension GameScene /* Touch Delegates */ {
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if gameData.ballsThrown >= Settings.numberOfBalls.value {
-            return
-        }
         
-        if let touch = touches.first {
-            let loc = touch.location(in: self)
-            gameData.currentlyThrowing = canPlaceBall(at: loc)
-            guard gameData.currentlyThrowing else { return }
-            nodes.tail.position = loc
-            fadeInTail()
-            fadeInLine()
-            self.physicsWorld.speed /= Settings.timeSlowdownFactorWhenThrowing.value
-        }
+        guard !gameData.currentlyThrowing,
+               gameData.ballsThrown < Settings.numberOfBalls.value,
+           let location = touches.first?.location(in: self),
+               canPlaceBall(at: location)                    else { return }
+        
+        beginBallThrow(at: location)
+        
+//        if gameData.ballsThrown >= Settings.numberOfBalls.value {
+//            return
+//        }
+//
+//        if let touch = touches.first {
+//            let loc = touch.location(in: self)
+//            gameData.currentlyThrowing = canPlaceBall(at: loc)
+//            guard gameData.currentlyThrowing else { return }
+//            nodes.tail.position = loc
+//            fadeInTail()
+//            fadeInLine()
+//            self.physicsWorld.speed /= Settings.timeSlowdownFactorWhenThrowing.value
+//        }
     }
     
     override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if gameData.ballsThrown >= Settings.numberOfBalls.value {
-            return
-        }
-        guard gameData.currentlyThrowing else { return }
-        if let touch = touches.first {
-            nodes.tip.position = touch.location(in: self)
-            fadeInTipMarker()
-            updateLinePosition()
-        }
+        
+        guard gameData.currentlyThrowing,
+              gameData.ballsThrown < Settings.numberOfBalls.value,
+          let location = touches.first?.location(in: self)       else { return }
+        
+        continueThrowingBall(from: location)
+        
+//        if gameData.ballsThrown >= Settings.numberOfBalls.value {
+//            return
+//        }
+//        guard gameData.currentlyThrowing else { return }
+//        if let touch = touches.first {
+//            nodes.tip.position = touch.location(in: self)
+//            fadeInTipMarker()
+//            updateLinePosition()
+//        }
     }
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        if gameData.ballsThrown >= Settings.numberOfBalls.value {
-            return
-        }
-        guard gameData.currentlyThrowing else { return }
-        if let touch = touches.first {
-            nodes.tip.position = touch.location(in: self)
-            self.physicsWorld.speed *= Settings.timeSlowdownFactorWhenThrowing.value
-            if canThrowBall() { throwBall() }
-            if gameData.ballsThrown >= Settings.numberOfBalls.value {
-                startTimer()
-                fadeOutTail()
-            }
-            fadeOutTipMarker()
-            fadeOutLine()
-        }
+        
+        guard gameData.currentlyThrowing,
+              gameData.ballsThrown < Settings.numberOfBalls.value,
+          let location = touches.first?.location(in: self)       else { return }
+        
+        stopThrowingBall(at: location)
+        
+//        if gameData.ballsThrown >= Settings.numberOfBalls.value {
+//            return
+//        }
+//        guard gameData.currentlyThrowing else { return }
+//        if let touch = touches.first {
+//            nodes.tip.position = touch.location(in: self)
+//            self.physicsWorld.speed *= Settings.timeSlowdownFactorWhenThrowing.value
+//            if canThrowBall() { throwBall() }
+//            if gameData.ballsThrown >= Settings.numberOfBalls.value {
+//                startTimer()
+//                fadeOutTail()
+//            }
+//            //fadeOutTipMarker()
+//            fadeOutLine()
+//        }
     }
     
     private func listenToRestartTouch() {
@@ -256,17 +319,17 @@ extension GameScene /* Animation */ {
     private static let fadeIn = SKAction.fadeIn(withDuration: 1)
     private static let fadeOut = SKAction.fadeOut(withDuration: 1)
     
-    private func fadeOutTipMarker() {
-        nodes.tip.run(GameScene.fadeOut)
-    }
-    private func fadeInTipMarker() {
+    private func fadeInTip() {
         nodes.tip.run(GameScene.fadeIn)
     }
-    private func fadeOutLine() {
-        nodes.line.run(GameScene.fadeOut)
+    private func fadeOutTip() {
+        nodes.tip.run(GameScene.fadeOut)
     }
     private func fadeInLine() {
         nodes.line.run(GameScene.fadeIn)
+    }
+    private func fadeOutLine() {
+        nodes.line.run(GameScene.fadeOut)
     }
     private func fadeInTail() {
         nodes.tail.run(GameScene.fadeIn)
@@ -295,18 +358,7 @@ extension GameScene /* Node Placement */ {
         obs.position = position
     }
     
-    private func canPlaceBall(at: CGPoint) -> Bool {
-        for obs in nodes.obstacles {
-            if obs.contains(at) {
-                return false
-            }
-        }
-        return true
-    }
     
-    private func canThrowBall() -> Bool {
-        return distance(from: nodes.tip.position, to: nodes.tail.position) > CGFloat(1)
-    }
     
     private func updateLinePosition() {
         //removeChildren(in: [nodes.line])
@@ -323,7 +375,23 @@ extension GameScene /* Node Placement */ {
 }
 
 
-
+extension GameScene /* Dismissal */ {
+    
+    private func cleanUp() {
+        children.forEach {
+            $0.removeAllActions()
+            $0.removeAllChildren()
+        }
+        removeAllActions()
+        removeAllChildren()
+    }
+    
+    @objc private func dismiss() {
+        unloadScene()
+        cleanUp()
+        NotificationCenter.default.post(name: SceneDismissal.dismissSceneNotificationName, object: nil)
+    }
+}
 
 
 extension GameScene /* Timer */ {
@@ -366,8 +434,9 @@ extension GameScene: SKPhysicsContactDelegate {
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                     self.camera?.run(group)
                     self.physicsWorld.speed *= 20
-                    self.unloadScene()
-                    self.loadScene()
+//                    self.unloadScene()
+//                    self.loadScene()
+                    self.dismiss()
                 }
                 
             }
