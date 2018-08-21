@@ -16,6 +16,8 @@ class MainMenuViewController: UIViewController {
     }
     
     override func viewWillAppear(_ animated: Bool) {
+        print("will appear")
+        print(Settings.colorScheme.value.textColor)
         setupButtons()
     }
     

@@ -32,6 +32,8 @@ class SettingsViewController: UIViewController {
         addSettingView(forSetting: Settings.obstacleMaxWidth)
         addSettingView(forSetting: Settings.obstacleMinHeight)
         addSettingView(forSetting: Settings.obstacleMaxHeight)
+        addSettingView(forSetting: Settings.timeSlowdownFactorWhenThrowing)
+        addSettingView(forSetting: Settings.timeSlowdownFactorAfterCollision)
 //        addSettingView(forSetting: Settings.numberOfBalls)
 //        addSettingView(forSetting: Settings.numberOfObstacles)
 //        addSettingView(forSetting: Settings.nthCollisionEndsRound)
@@ -146,6 +148,7 @@ class SettingView<T>: UIView, UITextFieldDelegate {
         inputField.textColor = Settings.colorScheme.value.textColor
         inputField.text = "\(setting.value)"
         inputField.keyboardType = determineKeyboardType()
+        inputField.autocapitalizationType = UITextAutocapitalizationType.none
         inputField.isEnabled = true
         inputField.borderStyle = .bezel
         

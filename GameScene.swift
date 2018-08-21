@@ -44,7 +44,6 @@ class GameScene: SKScene {
     
     override func sceneDidLoad() {
         backgroundColor = Settings.colorScheme.value.backgroundColor
-
         
         loadScene()
 
@@ -396,6 +395,18 @@ extension GameScene /* Dismissal */ {
     }
 }
 
+extension GameScene /* High Scores */ {
+    private func recordScore() {
+        let key = Settings.numberOfBalls.value
+        let time = Float(elapsedTimeInSeconds())
+        var oldScores = HighScores.getHighScores()
+        let previous = oldScores[key] ?? -1.0
+        oldScores[key] = max(previous, time)
+        
+        HighScores.setHighScores(oldScores)
+    }
+}
+
 
 extension GameScene /* Timer */ {
     
@@ -409,11 +420,12 @@ extension GameScene /* Timer */ {
         gameData.timer.fire()
         
     }
+    private func elapsedTimeInSeconds() -> Double {
+        guard let startTime = gameData.startTime else { return 0 }
+        return Float64((mach_absolute_time() - startTime)) / Float64(NSEC_PER_SEC)
+    }
     private func updateTimer() {
-        guard let startTime = gameData.startTime else { return }
-        let elapsedInSeconds = Float64((mach_absolute_time() - startTime)) / Float64(NSEC_PER_SEC)
-        let str = String(format: "%.1f", elapsedInSeconds) // ex: 4.2
-        nodes.timerLabel.text = str
+        nodes.timerLabel.text = String(format: "%.1f", elapsedTimeInSeconds()) // ex: 4.2
     }
     private func stopTimer() {
         gameData.timer.invalidate()
@@ -434,6 +446,7 @@ extension GameScene: SKPhysicsContactDelegate {
               let hitPosition = contact.bodyA.node?.position   else { return }
         
         stopTimer()
+        
         physicsWorld.speed = 1.0 / Settings.timeSlowdownFactorAfterCollision.value
         let pan = SKAction.move(to: hitPosition, duration: 0.25)
         

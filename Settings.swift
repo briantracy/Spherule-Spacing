@@ -14,11 +14,11 @@
 import Foundation
 import UIKit
 
-struct Settings {
+class Settings {
     
     static var numberOfBalls = Setting("numberOfBalls", initialValue: 2, description: "The number of balls that are required to be thrown before the timer starts. Set this to 0 to throw as many balls as you like.")
     static var ballRadius = Setting("ballRadius", initialValue: CGFloat(15.0), description: "The radius, in points, of the balls that are thrown. This is some more text to wrap lines.")
-    static var ballVelocity = Setting("ballVelocity", initialValue: CGFloat(200), description: "sdf")
+    static var ballVelocity = Setting("ballVelocity", initialValue: CGFloat(200), description: "The magnitude of the velocity of the thrown balls")
     static var tailMarkerRadius = Setting("tailMarkerRadius", initialValue: CGFloat(2), description: "sdf")
     static var tipMarkerRadius = Setting("tipMarkerRadius", initialValue: CGFloat(15.0), description: "sdf")
      
@@ -26,8 +26,8 @@ struct Settings {
     
     static var firstCollisionEndsRound = Setting("firstCollisionEndsRound", initialValue: true, description: "sdf")
     static var nthCollisionEndsRound = Setting("nthCollisionEndsRound", initialValue: -1, description: "sdf")
-    static var timeSlowdownFactorWhenThrowing = Setting("timeSlowdownFactorWhenThrowing", initialValue: CGFloat(10), description: "sdf")
-    static var timeSlowdownFactorAfterCollision = Setting("timeSlowdownFactorAfterCollision", initialValue: CGFloat(10), description: "sdf")
+    static var timeSlowdownFactorWhenThrowing = Setting("timeSlowdownFactorWhenThrowing", initialValue: CGFloat(10), description: "How much time slows down when throwing balls.")
+    static var timeSlowdownFactorAfterCollision = Setting("timeSlowdownFactorAfterCollision", initialValue: CGFloat(10), description: "How much time slows down when two balls collide.")
     
     static var numberOfObstacles = Setting("numberOfObstacles", initialValue: 5, description: "The number of obstacles that are placed each game.")
     static var obstacleMinWidth = Setting("obstacleMinWidth", initialValue: 60, description: "The minimum width of the obstacles.")
@@ -35,7 +35,7 @@ struct Settings {
     static var obstacleMinHeight = Setting("obstacleMinHeight", initialValue: 60, description: "The minimum height of the obstacles.")
     static var obstacleMaxHeight = Setting("obstacleMaxHeight", initialValue: 80, description: "The maximum height of the obstacles.")
     
-    static var colorScheme = Setting("colorScheme", initialValue: ColorSchemes.retroCRT, description: "The colorscheme used by the entire application. Current options are: retroCRT")
+    static var colorScheme = Setting("colorScheme", initialValue: ColorSchemes.random, description: "The colorscheme used by the entire application. Current options are: retroCRT, random. To recalculate a new random colorscheme, switch to something else, then back to random.")
     
 }
 
@@ -91,10 +91,17 @@ class Setting<T> {
                 return true
             }
         }
+        
+        if T.self is ColorScheme.Type {
+            if let scheme = [ColorSchemes.retroCRT.name : ColorSchemes.retroCRT,
+                             ColorSchemes.random.name   : ColorSchemes.random][str] {
+                self.value = scheme as! T
+                return true
+            }
+        }
         return false
     }
 }
-
 
 struct HighScores {
     

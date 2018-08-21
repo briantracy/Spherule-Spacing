@@ -97,6 +97,7 @@ struct ColorSchemes {
                                    startPointColor: .green, endPointColor: .green, connectingLineColor: .green,
                                    tailMarkerFillColor: .green, tailMarkerStrokeColor: .green, tipMarkerFillColor: .clear,
                                    tipMarkerStrokeColor: .green, mainMenuBackgroundColor: .black, settingsMenuBackgroundColor: .black, textColor: .green)
+    static let random = ColorScheme(name: "random", backgroundColor: .random(), ballFillColor: .random(), ballStrokeColor: .random(), obstacleFillColor: .random(), obstacleStrokeColor: .random(), startPointColor: .random(), endPointColor: .random(), connectingLineColor: .random(), tailMarkerFillColor: .random(), tailMarkerStrokeColor: .random(), tipMarkerFillColor: .random(), tipMarkerStrokeColor: .random(), mainMenuBackgroundColor: .random(), settingsMenuBackgroundColor: .random(), textColor: .random())
 //    static let grayscale =
 //                       ColorScheme(name: "grayscale", backgroundColor: "#DDDDDD".c, ballFillColor: "#777777".c,
 //                                   ballStrokeColor: "#BBBBBB".c, obstacleFillColor: "#808080".c, obstacleStrokeColor: .black,
@@ -120,6 +121,11 @@ extension UIColor {
             green: CGFloat((rgb &   0xFF00) >>  8)/255.0,
             blue:  CGFloat((rgb &     0xFF)      )/255.0,
             alpha: alpha)
+    }
+    
+    static func random() -> UIColor {
+        let r = { CGFloat(arc4random()) / CGFloat(UINT32_MAX) }
+        return UIColor(red: r(), green: r(), blue: r(), alpha: max(1.0, r() + r()))
     }
 }
 
