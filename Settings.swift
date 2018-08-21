@@ -27,6 +27,7 @@ struct Settings {
     static var firstCollisionEndsRound = Setting("firstCollisionEndsRound", initialValue: true, description: "sdf")
     static var nthCollisionEndsRound = Setting("nthCollisionEndsRound", initialValue: -1, description: "sdf")
     static var timeSlowdownFactorWhenThrowing = Setting("timeSlowdownFactorWhenThrowing", initialValue: CGFloat(10), description: "sdf")
+    static var timeSlowdownFactorAfterCollision = Setting("timeSlowdownFactorAfterCollision", initialValue: CGFloat(10), description: "sdf")
     
     static var numberOfObstacles = Setting("numberOfObstacles", initialValue: 5, description: "The number of obstacles that are placed each game.")
     static var obstacleMinWidth = Setting("obstacleMinWidth", initialValue: 60, description: "The minimum width of the obstacles.")
@@ -38,30 +39,8 @@ struct Settings {
     
 }
 
-
 enum UserDefaultsKey: String {
-    case j
-//    case numberOfBalls
-//    case ballRadius
-//    case ballVelocity
-//
-//    case tailMarkerRadius
-//    case tipMarkerRadius
-//
-//    case hideStatusBar
-//
-//    case firstCollisionEndsRound
-//    case nthCollisionEndsRound
-//    case timeSlowdownFactorWhenThrowing
-//
-//    case numberOfObstacles
-//    case obstacleMinWidth
-//    case obstacleMaxWidth
-//    case obstacleMinHeight
-//    case obstacleMaxHeight
-//
-//    case colorScheme
-    
+    case scoresDictionaryKey
 }
 
 class Setting<T> {
@@ -86,7 +65,6 @@ class Setting<T> {
         didSet {
             let data = NSKeyedArchiver.archivedData(withRootObject: value)
             UserDefaults.standard.set(data, forKey: name)
-            onChangeHandlers.forEach { $0(value) }
         }
     }
     
@@ -115,10 +93,33 @@ class Setting<T> {
         }
         return false
     }
+}
+
+
+struct HighScores {
     
-    private var onChangeHandlers = [(T) -> Void]()
-    public func onChange(_ handler: @escaping (T) -> Void) {
-        onChangeHandlers.append(handler)
+    public typealias ScoreFormat = [Int: Float]
+    
+    static func getHighScores() -> ScoreFormat {
+        if let data = UserDefaults.standard.data(forKey: UserDefaultsKey.scoresDictionaryKey.rawValue),
+           let dict = NSKeyedUnarchiver.unarchiveObject(with: data) as? ScoreFormat {
+                return dict
+        } else {
+            return ScoreFormat()
+        }
+    }
+    
+    static func setHighScores(_ scores: ScoreFormat) {
+        UserDefaults.standard.set(NSKeyedArchiver.archivedData(withRootObject: scores),
+                                  forKey: UserDefaultsKey.scoresDictionaryKey.rawValue)
     }
 }
+
+
+
+
+
+
+
+
 

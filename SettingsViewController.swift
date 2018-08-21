@@ -27,16 +27,19 @@ class SettingsViewController: UIViewController {
         addSettingView(forSetting: Settings.numberOfBalls)
         addSettingView(forSetting: Settings.numberOfObstacles)
         addSettingView(forSetting: Settings.ballVelocity)
-        addSettingView(forSetting: Settings.ballVelocity)
-        addSettingView(forSetting: Settings.ballRadius)
-        addSettingView(forSetting: Settings.numberOfBalls)
-        addSettingView(forSetting: Settings.numberOfObstacles)
-        addSettingView(forSetting: Settings.nthCollisionEndsRound)
-        addSettingView(forSetting: Settings.ballVelocity)
-        addSettingView(forSetting: Settings.numberOfObstacles)
-        addSettingView(forSetting: Settings.numberOfObstacles)
-        addSettingView(forSetting: Settings.numberOfObstacles)
-        addSettingView(forSetting: Settings.numberOfObstacles)
+        addSettingView(forSetting: Settings.colorScheme)
+        addSettingView(forSetting: Settings.obstacleMinWidth)
+        addSettingView(forSetting: Settings.obstacleMaxWidth)
+        addSettingView(forSetting: Settings.obstacleMinHeight)
+        addSettingView(forSetting: Settings.obstacleMaxHeight)
+//        addSettingView(forSetting: Settings.numberOfBalls)
+//        addSettingView(forSetting: Settings.numberOfObstacles)
+//        addSettingView(forSetting: Settings.nthCollisionEndsRound)
+//        addSettingView(forSetting: Settings.ballVelocity)
+//        addSettingView(forSetting: Settings.numberOfObstacles)
+//        addSettingView(forSetting: Settings.numberOfObstacles)
+//        addSettingView(forSetting: Settings.numberOfObstacles)
+//        addSettingView(forSetting: Settings.numberOfObstacles)
     }
     
     override var canBecomeFirstResponder: Bool {
@@ -142,9 +145,10 @@ class SettingView<T>: UIView, UITextFieldDelegate {
         
         inputField.textColor = Settings.colorScheme.value.textColor
         inputField.text = "\(setting.value)"
-        
+        inputField.keyboardType = determineKeyboardType()
         inputField.isEnabled = true
         inputField.borderStyle = .bezel
+        
         //inputField.backgroundColor = .red
         inputField.allowsEditingTextAttributes = true
         inputField.delegate = self
@@ -201,5 +205,14 @@ class SettingView<T>: UIView, UITextFieldDelegate {
                 textField.text = "\(setting.initialValue)"
             }
         }
+    }
+    
+    func determineKeyboardType() -> UIKeyboardType {
+        
+        if T.self is Int.Type || T.self is CGFloat.Type {
+            return .decimalPad
+        }
+        
+        return UIKeyboardType.default
     }
 }

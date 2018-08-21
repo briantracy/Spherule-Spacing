@@ -17,13 +17,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         
         application.isStatusBarHidden = Settings.hideStatusBar.value
-        
+//
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.rootViewController = rootViewController
         window?.makeKeyAndVisible()
-        
-        //UserDefaults.standard.removePersistentDomain(forName: Bundle.main.bundleIdentifier!)
 
+        
+//        UserDefaults.standard.removePersistentDomain(forName: Bundle.main.bundleIdentifier!)
+        
+        HighScores.setHighScores([1: Float(3.0), 2: Float(4.0)])
+        print(HighScores.getHighScores())
+        
         return true
     }
 

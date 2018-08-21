@@ -316,26 +316,29 @@ extension GameScene /* Touch Delegates */ {
 }
 
 extension GameScene /* Animation */ {
-    private static let fadeIn = SKAction.fadeIn(withDuration: 1)
-    private static let fadeOut = SKAction.fadeOut(withDuration: 1)
+    struct Actions {
+        static let fadeIn = SKAction.fadeIn(withDuration: 1)
+        static let fadeOut = SKAction.fadeOut(withDuration: 1)
+        static let zoomIn = SKAction.scale(to: 0.5, duration: 0.25)
+    }
     
     private func fadeInTip() {
-        nodes.tip.run(GameScene.fadeIn)
+        nodes.tip.run(Actions.fadeIn)
     }
     private func fadeOutTip() {
-        nodes.tip.run(GameScene.fadeOut)
+        nodes.tip.run(Actions.fadeOut)
     }
     private func fadeInLine() {
-        nodes.line.run(GameScene.fadeIn)
+        nodes.line.run(Actions.fadeIn)
     }
     private func fadeOutLine() {
-        nodes.line.run(GameScene.fadeOut)
+        nodes.line.run(Actions.fadeOut)
     }
     private func fadeInTail() {
-        nodes.tail.run(GameScene.fadeIn)
+        nodes.tail.run(Actions.fadeIn)
     }
     private func fadeOutTail() {
-        nodes.tail.run(GameScene.fadeOut)
+        nodes.tail.run(Actions.fadeOut)
     }
 }
 
@@ -418,30 +421,53 @@ extension GameScene /* Timer */ {
 }
 
 extension GameScene: SKPhysicsContactDelegate {
+    
+    private func threequal(_ a: UInt32, _ b: UInt32, _ c: UInt32) -> Bool {
+        return a == b && b == c
+    }
+    
     func didBegin(_ contact: SKPhysicsContact) {
-        if contact.bodyA.contactTestBitMask == contact.bodyB.contactTestBitMask {
-            stopTimer()
-            physicsWorld.speed /= 20
-            print(contact.bodyA.contactTestBitMask)
-            let loc = contact.bodyB.node!.position
-            let moveAction = SKAction.move(to: loc, duration: 0.25)
-            let zoom = SKAction.scale(to: 0.5, duration: 0.25)
-            let group = SKAction.group([moveAction, zoom])
-            camera?.run(group) {
-                let moveAction = SKAction.move(to: CGPoint(x: UIScreen.width / 2, y: UIScreen.height / 2), duration: 0.25)
-                let zoom = SKAction.scale(to: 1, duration: 0.25)
-                let group = SKAction.group([moveAction, zoom])
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                    self.camera?.run(group)
-                    self.physicsWorld.speed *= 20
-//                    self.unloadScene()
-//                    self.loadScene()
-                    self.dismiss()
+        
+        guard threequal(contact.bodyA.contactTestBitMask,
+                        contact.bodyB.contactTestBitMask,
+                        PhysicsConstants.ballContactBitMask),
+              let hitPosition = contact.bodyA.node?.position   else { return }
+        
+        stopTimer()
+        physicsWorld.speed = 1.0 / Settings.timeSlowdownFactorAfterCollision.value
+        let pan = SKAction.move(to: hitPosition, duration: 0.25)
+        
+        camera?.run(SKAction.group([pan, Actions.zoomIn])) { [weak self] in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+                self?.camera?.run(SKAction.group([pan.reversed(), Actions.zoomIn.reversed()])) { [weak self] in
+                    self?.physicsWorld.speed = 1
+                    self?.dismiss()
                 }
-                
             }
-
         }
+        
+//        if contact.bodyA.contactTestBitMask == contact.bodyB.contactTestBitMask {
+//            stopTimer()
+//            physicsWorld.speed /= 20
+//            print(contact.bodyA.contactTestBitMask)
+//            let loc = contact.bodyB.node!.position
+//            let moveAction = SKAction.move(to: loc, duration: 0.25)
+//            let zoom = SKAction.scale(to: 0.5, duration: 0.25)
+//            let group = SKAction.group([moveAction, zoom])
+//            camera?.run(group) {
+//                let moveAction = SKAction.move(to: CGPoint(x: UIScreen.width / 2, y: UIScreen.height / 2), duration: 0.25)
+//                let zoom = SKAction.scale(to: 1, duration: 0.25)
+//                let group = SKAction.group([moveAction, zoom])
+//                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+//                    self.camera?.run(group)
+//                    self.physicsWorld.speed *= 20
+////                    self.unloadScene()
+////                    self.loadScene()
+//                    self.dismiss()
+//                }
+//
+//            }
+
 //        physicsWorld.speed /= 10
 //        print("contact" )
 //

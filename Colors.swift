@@ -80,6 +80,10 @@ import UIKit
             self.setValue(value, forKey: child.label!)
         }
     }
+    
+    override var description: String {
+        return name
+    }
 }
 
 struct ColorSchemes {
@@ -88,7 +92,7 @@ struct ColorSchemes {
 //                                   startPointColor: .orange, endPointColor: .orange, connectingLineColor: .yellow,
 //                                   tailMarkerFillColor: .red, tailMarkerStrokeColor: .red, tipMarkerFillColor: .red,
 //                                   tipMarkerStrokeColor: .red, mainMenuBackgroundColor: .cyan)
-    static let retroCRT = ColorScheme(name: "retro", backgroundColor: .black, ballFillColor: .clear,
+    static let retroCRT = ColorScheme(name: "retroCRT", backgroundColor: .black, ballFillColor: .clear,
                                    ballStrokeColor: .green, obstacleFillColor: .clear, obstacleStrokeColor: .green,
                                    startPointColor: .green, endPointColor: .green, connectingLineColor: .green,
                                    tailMarkerFillColor: .green, tailMarkerStrokeColor: .green, tipMarkerFillColor: .clear,
